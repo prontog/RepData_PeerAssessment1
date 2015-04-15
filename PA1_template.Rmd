@@ -5,18 +5,35 @@ output:
     keep_md: true
 ---
 
-
 ## Loading and preprocessing the data
-
-
+```{r}
+unzip('activity.zip')
+activity <- read.csv('activity.csv')
+```
 
 ## What is mean total number of steps taken per day?
+```{r}
+day_sum <- aggregate(steps ~ date, data = activity, FUN = sum)
 
+hist(day_sum$steps, xlab = 'steps/day', main = 'Total number of steps taken each day', breaks = 15)
 
+mean_steps_per_day <- mean(day_sum$steps, na.rm = TRUE)
+median_steps_per_day <- median(day_sum$steps, na.rm = TRUE)
+```
+
+The mean of the total number of steps taken per day is **`r mean_steps_per_day`**.  
+The median of the total number of steps taken per day is **`r median_steps_per_day`**.
 
 ## What is the average daily activity pattern?
+```{r}
+interval_mean <- aggregate(steps ~ interval, data = activity, FUN = mean)
 
+plot(interval_mean, type = 'l', main = 'Average number of steps taken per 5-minute interval')
 
+max_interval <- which.max(interval_mean$steps)
+```
+
+The 5-minute interval, on average across all the days in the dataset, containing the maximum number of steps is interval **`r max_interval`**.
 
 ## Imputing missing values
 
