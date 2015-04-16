@@ -1,30 +1,32 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-author: "Panos Rontogiannis"
-date: "`r Sys.Date()`"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
+Panos Rontogiannis  
+`r Sys.Date()`  
 
-```{r global_options}
+
+```r
 knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='figure/', warning = FALSE)
 # The plots will be made using lattice.
 library(lattice) 
 ```
 
 ## Loading and preprocessing the data
-```{r loading_data}
+
+```r
 unzip('activity.zip')
 act <- read.csv('activity.csv')
 ```
 
 ## What is mean total number of steps taken per day?
-```{r steps_per_day}
+
+```r
 day_sum <- aggregate(steps ~ date, data = act, FUN = sum)
 
 histogram(day_sum$steps, xlab = 'steps/day', main = 'Total number of steps taken each day', breaks = 15)
+```
 
+![](figure/steps_per_day-1.png) 
+
+```r
 mean_steps_per_day <- mean(day_sum$steps, na.rm = TRUE)
 median_steps_per_day <- median(day_sum$steps, na.rm = TRUE)
 
@@ -32,31 +34,38 @@ median_steps_per_day <- median(day_sum$steps, na.rm = TRUE)
 mean_steps_per_day <- sprintf("%.2f", mean_steps_per_day)
 ```
 
-The **mean** of the total number of steps taken per day is `r mean_steps_per_day`.  
-The **median** of the total number of steps taken per day is `r median_steps_per_day`.
+The **mean** of the total number of steps taken per day is 10766.19.  
+The **median** of the total number of steps taken per day is 10765.
 
 ## What is the average daily activity pattern?
-```{r daily_pattern}
+
+```r
 interval_mean <- aggregate(steps ~ interval, data = act, FUN = mean)
 
 xyplot(steps ~ interval, data = interval_mean, type = 'l', main = 'Average number of steps taken per 5-minute interval', xlab = '5-minute interval')
+```
 
+![](figure/daily_pattern-1.png) 
+
+```r
 max_interval <- which.max(interval_mean$steps)
 ```
 
-The 5-minute interval, on average across all the days in the dataset, containing the maximum number of steps is interval **`r max_interval`**.
+The 5-minute interval, on average across all the days in the dataset, containing the maximum number of steps is interval **104**.
 
 ## Imputing missing values
 
-```{r count_missing}
+
+```r
 total_incomplete_rows <- length(which(!complete.cases(act)))
 ```
 
-The total number of missing values in the dataset is **`r total_incomplete_rows`**.
+The total number of missing values in the dataset is **2304**.
 
 To fill in the missing steps we use the mean for that 5-minute interval (one of the suggested strategies mentioned in the assignment description).
 
-```{r fill_missing}
+
+```r
 act_filled <- act
 
 # I'm pretty sure this can be done in a functional style but haven't figured it out yet. Hence the for loop.
@@ -69,7 +78,11 @@ for (i in 1:nrow(act_filled)) {
 day_sum_filled <- aggregate(steps ~ date, data = act_filled, FUN = sum)
 
 histogram(day_sum_filled$steps, xlab = 'steps/day', main = 'Total number of steps taken each day', breaks = 15)
+```
 
+![](figure/fill_missing-1.png) 
+
+```r
 mean_steps_per_day_filled <- mean(day_sum_filled$steps)
 median_steps_per_day_filled <- median(day_sum_filled$steps)
 
@@ -78,14 +91,15 @@ mean_steps_per_day_filled <- sprintf("%.2f", mean_steps_per_day_filled)
 median_steps_per_day_filled <- sprintf("%.2f", median_steps_per_day_filled)
 ```
 
-After filling in the missing values, the **mean** of the total number of steps taken per day becomes `r mean_steps_per_day_filled` (from `r mean_steps_per_day`).  
-The **median** of the total number of steps taken per day becomes `r median_steps_per_day_filled` (from `r median_steps_per_day`).
+After filling in the missing values, the **mean** of the total number of steps taken per day becomes 10766.19 (from 10766.19).  
+The **median** of the total number of steps taken per day becomes 10766.19 (from 10765).
 
 We can see that the mean has not changed but that the median has converged with the mean. They are now the same.
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
-```{r day_pattern_preparation}
+
+```r
 # Add a column with the date in POSIXlt format.
 act_filled$datePOSIX <- as.POSIXlt(act_filled$date, format = '%Y-%m-%d')
 # Add a column with the type of day
@@ -94,7 +108,8 @@ act_filled$dayType <- ifelse(strftime(act_filled$datePOSIX, format = '%u') > 5, 
 act_filled$dayType <- factor(act_filled$dayType, levels = c(0, 1), labels = c('weekday', 'weekend'))
 ```
 
-```{r day_pattern_compute}
+
+```r
 # Subset according to type of day.
 wdays <- subset(act_filled, dayType == "weekday")
 wends <- subset(act_filled, dayType == "weekend")
@@ -110,4 +125,6 @@ combined_mean <- rbind(wends_mean, wdays_mean)
 
 xyplot(steps ~ interval | dayType, data = combined_mean, type='l', layout = c(1, 2), xlab = '5-minute interval', ylab = 'Number of steps')
 ```
+
+![](figure/day_pattern_compute-1.png) 
 
