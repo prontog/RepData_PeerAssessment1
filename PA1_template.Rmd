@@ -7,13 +7,18 @@ output:
     keep_md: true
 ---
 
+Firstly let's set a few global *knitr* options and load the *lattice* package which will be used for plotting.
+
+
 ```{r global_options}
 knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='figure/', warning = FALSE)
-# The plots will be made using lattice.
 library(lattice) 
 ```
 
 ## Loading and preprocessing the data
+
+Before loading the data we need to unzip it first. No preprocessing at this point. Later on we will add a couple collumns.
+
 ```{r loading_data}
 unzip('activity.zip')
 act <- read.csv('activity.csv')
@@ -85,14 +90,18 @@ We can see that the mean has not changed but that the median has converged with 
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
+First we add a column with the date in POSIXlt format. This is needed to identify the type of day using the *strftime* function. Then we add another column representing the type of day which can either be "weekdays" or "weekends".
+
+
 ```{r day_pattern_preparation}
-# Add a column with the date in POSIXlt format.
 act_filled$datePOSIX <- as.POSIXlt(act_filled$date, format = '%Y-%m-%d')
 # Add a column with the type of day
 act_filled$dayType <- ifelse(strftime(act_filled$datePOSIX, format = '%u') > 5, 1, 0)
 # and convert it to a factor.
 act_filled$dayType <- factor(act_filled$dayType, levels = c(0, 1), labels = c('weekday', 'weekend'))
 ```
+
+To compute the mean intervals per type of day, we first subset the filled data into two dataframes. One per type of day. Then compute the mean per interval for both types of day. Then we combine these two dataframes into one. So in the combined dataframe there will be two rows per interval. One containing the mean steps for weekends and the other for weekdays. Finally we created the panel plot.
 
 ```{r day_pattern_compute}
 # Subset according to type of day.
@@ -111,3 +120,11 @@ combined_mean <- rbind(wends_mean, wdays_mean)
 xyplot(steps ~ interval | dayType, data = combined_mean, type='l', layout = c(1, 2), xlab = '5-minute interval', ylab = 'Number of steps')
 ```
 
+From the panel plot we can see that on weekdays the mean steps seem higher betweem intervals 500 and 900 but from then on seem to be lower than on weekends. This can aslo be seen from summary statistics on the weekend and weekdays dataframes. weekdays have a higher range but lower median and mean.
+
+```{r day_pattern_summary_stats}
+summary(wends_mean)
+summary(wdays_mean)
+```
+
+I don't know why though :)

@@ -2,14 +2,19 @@
 Panos Rontogiannis  
 `r Sys.Date()`  
 
+Firstly let's set a few global *knitr* options and load the *lattice* package which will be used for plotting.
+
+
 
 ```r
 knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='figure/', warning = FALSE)
-# The plots will be made using lattice.
 library(lattice) 
 ```
 
 ## Loading and preprocessing the data
+
+Before loading the data we need to unzip it first. No preprocessing at this point. Later on we will add a couple collumns.
+
 
 ```r
 unzip('activity.zip')
@@ -98,15 +103,19 @@ We can see that the mean has not changed but that the median has converged with 
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
+First we add a column with the date in POSIXlt format. This is needed to identify the type of day using the *strftime* function. Then we add another column representing the type of day which can either be "weekdays" or "weekends".
+
+
 
 ```r
-# Add a column with the date in POSIXlt format.
 act_filled$datePOSIX <- as.POSIXlt(act_filled$date, format = '%Y-%m-%d')
 # Add a column with the type of day
 act_filled$dayType <- ifelse(strftime(act_filled$datePOSIX, format = '%u') > 5, 1, 0)
 # and convert it to a factor.
 act_filled$dayType <- factor(act_filled$dayType, levels = c(0, 1), labels = c('weekday', 'weekend'))
 ```
+
+To compute the mean intervals per type of day, we first subset the filled data into two dataframes. One per type of day. Then compute the mean per interval for both types of day. Then we combine these two dataframes into one. So in the combined dataframe there will be two rows per interval. One containing the mean steps for weekends and the other for weekdays. Finally we created the panel plot.
 
 
 ```r
@@ -128,3 +137,35 @@ xyplot(steps ~ interval | dayType, data = combined_mean, type='l', layout = c(1,
 
 ![](figure/day_pattern_compute-1.png) 
 
+From the panel plot we can see that on weekdays the mean steps seem higher betweem intervals 500 and 900 but from then on seem to be lower than on weekends. This can aslo be seen from summary statistics on the weekend and weekdays dataframes. weekdays have a higher range but lower median and mean.
+
+
+```r
+summary(wends_mean)
+```
+
+```
+##     interval          steps           dayType         
+##  Min.   :   0.0   Min.   :  0.000   Length:288        
+##  1st Qu.: 588.8   1st Qu.:  1.241   Class :character  
+##  Median :1177.5   Median : 32.340   Mode  :character  
+##  Mean   :1177.5   Mean   : 42.366                     
+##  3rd Qu.:1766.2   3rd Qu.: 74.654                     
+##  Max.   :2355.0   Max.   :166.639
+```
+
+```r
+summary(wdays_mean)
+```
+
+```
+##     interval          steps           dayType         
+##  Min.   :   0.0   Min.   :  0.000   Length:288        
+##  1st Qu.: 588.8   1st Qu.:  2.247   Class :character  
+##  Median :1177.5   Median : 25.803   Mode  :character  
+##  Mean   :1177.5   Mean   : 35.611                     
+##  3rd Qu.:1766.2   3rd Qu.: 50.854                     
+##  Max.   :2355.0   Max.   :230.378
+```
+
+I don't know why though :)
